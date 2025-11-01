@@ -1,33 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEdit, FaSearch, FaRegFrown } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import AddClass from "../components/AddClass";
 
-const sampleClasses = [
-  { id: 1, subject: "Math", teacher: "Mr. Rahim", studentsEnrolled: 25 },
-  { id: 2, subject: "Science", teacher: "Mrs. Nabila", studentsEnrolled: 20 },
-  { id: 3, subject: "English", teacher: "Ms. Shila", studentsEnrolled: 22 },
-  { id: 4, subject: "History", teacher: "Mr. Karim", studentsEnrolled: 18 },
-  { id: 5, subject: "Biology", teacher: "Dr. Rina", studentsEnrolled: 21 },
-  { id: 6, subject: "Physics", teacher: "Mr. Sakib", studentsEnrolled: 19 },
-  { id: 7, subject: "Chemistry", teacher: "Ms. Tania", studentsEnrolled: 23 },
-  { id: 8, subject: "Geography", teacher: "Mr. Rashed", studentsEnrolled: 17 },
-  { id: 9, subject: "Math", teacher: "Mr. Jahid", studentsEnrolled: 26 },
-  { id: 10, subject: "English", teacher: "Ms. Shila", studentsEnrolled: 20 },
-];
-
 const Class = () => {
-  const [classes] = useState(sampleClasses);
+  const [classes, setClasses] = useState([]);
   const [search, setSearch] = useState("");
   const [showAddClassForm, setShowAddClassForm] = useState(false);
+  const [currentClass, setCurrentClass] = useState(null); // For editing
 
-  const filteredClasses = classes.filter(
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/class");
+        const data = await res.json();
+        setClasses(data?.data);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  const filteredClasses = classes?.filter(
     (cls) =>
       cls.subject.toLowerCase().includes(search.toLowerCase()) ||
-      cls.teacher.toLowerCase().includes(search.toLowerCase())
+      cls.teacherName.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Function to get subject badge color
   const getSubjectColor = (subject) => {
     switch (subject.toLowerCase()) {
       case "math":
@@ -51,10 +51,34 @@ const Class = () => {
     }
   };
 
+  // Open edit modal with selected class
+  const handleEdit = (cls) => {
+    setCurrentClass(cls);
+    setShowAddClassForm(true);
+  };
+
+  // Delete class
+  const handleDelete = async (cls) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${cls.subject} class?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/class/${cls.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      console.log("Deleted class:", data);
+      setClasses(classes.filter((c) => c.id !== cls.id));
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
+
   return (
     <>
       <div className="p-4 md:px-8 md:py-1 bg-gray-100 min-h-screen">
-        {/* Parent container */}
         <div className="bg-white rounded-lg shadow-md p-6">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -63,7 +87,10 @@ const Class = () => {
               <p className="text-gray-600">View and manage class records</p>
             </div>
             <button
-              onClick={() => setShowAddClassForm(true)}
+              onClick={() => {
+                setCurrentClass(null); // Clear previous data for Add
+                setShowAddClassForm(true);
+              }}
               className="mt-3 md:mt-0 bg-lime-600 text-white px-5 py-2 rounded hover:bg-lime-700 transition cursor-pointer"
             >
               + Add Class
@@ -98,14 +125,13 @@ const Class = () => {
                   ].map((title) => (
                     <th
                       key={title}
-                      className={`px-4 py-3 text-left text-gray-700 font-semibold uppercase tracking-wider text-sm
-              ${
-                title === "Actions"
-                  ? "text-right w-32 sm:w-40"
-                  : title === "Students Enrolled"
-                  ? "w-32 sm:w-40"
-                  : ""
-              }`}
+                      className={`px-4 py-3 text-left text-gray-700 font-semibold uppercase tracking-wider text-sm ${
+                        title === "Actions"
+                          ? "text-right w-32 sm:w-40"
+                          : title === "Students Enrolled"
+                          ? "w-32 sm:w-40"
+                          : ""
+                      }`}
                     >
                       {title}
                     </th>
@@ -121,7 +147,6 @@ const Class = () => {
                       className="hover:bg-lime-50 transition-colors duration-200"
                     >
                       <td className="px-4 py-3">{cls.id}</td>
-
                       <td className="px-4 py-3">
                         <span
                           className={`inline-block px-2 py-1 text-xs sm:text-sm font-semibold rounded ${getSubjectColor(
@@ -131,19 +156,23 @@ const Class = () => {
                           {cls.subject}
                         </span>
                       </td>
-
-                      <td className="px-4 py-3 text-gray-800">{cls.teacher}</td>
-
-                      <td className="px-4 py-3 text-gray-800 w-32 sm:w-40">
-                        {cls.studentsEnrolled}
+                      <td className="px-4 py-3 text-gray-800">
+                        {cls.teacherName}
                       </td>
-
-                      {/* Actions */}
+                      <td className="px-4 py-3 text-gray-800 w-32 sm:w-40">
+                        20
+                      </td>
                       <td className="px-4 py-3 flex gap-2 sm:gap-3 justify-end w-32 sm:w-40">
-                        <button className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-yellow-600 rounded-lg hover:text-yellow-700 transition duration-200 cursor-pointer">
+                        <button
+                          onClick={() => handleEdit(cls)}
+                          className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-yellow-600 rounded-lg hover:text-yellow-700 transition duration-200 cursor-pointer"
+                        >
                           <FaEdit size={18} className="sm:text-[20px]" />
                         </button>
-                        <button className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-red-600 rounded-lg hover:text-red-700 transition duration-200 cursor-pointer">
+                        <button
+                          onClick={() => handleDelete(cls)}
+                          className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 text-red-600 rounded-lg hover:text-red-700 transition duration-200 cursor-pointer"
+                        >
                           <MdDeleteForever
                             size={20}
                             className="sm:text-[22px]"
@@ -173,8 +202,12 @@ const Class = () => {
         </div>
       </div>
 
+      {/* Add/Edit Modal */}
       {showAddClassForm && (
-        <AddClass setShowAddClassForm={setShowAddClassForm} />
+        <AddClass
+          setShowAddClassForm={setShowAddClassForm}
+          currentClass={currentClass}
+        />
       )}
     </>
   );

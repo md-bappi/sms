@@ -2,68 +2,25 @@ import { useState } from "react";
 import { FaEdit, FaSearch, FaRegFrown } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import AddStudent from "../components/AddStudent";
-
-const sampleStudents = [
-  { id: 1, name: "Bappy", age: 20, email: "bappy@gmail.com", subject: "Math" },
-  {
-    id: 2,
-    name: "Rahim",
-    age: 21,
-    email: "rahim@gmail.com",
-    subject: "Science",
-  },
-  {
-    id: 3,
-    name: "Karim",
-    age: 19,
-    email: "karim@gmail.com",
-    subject: "English",
-  },
-  {
-    id: 4,
-    name: "Nabila",
-    age: 22,
-    email: "nabila@gmail.com",
-    subject: "History",
-  },
-  { id: 5, name: "Rina", age: 20, email: "rina@gmail.com", subject: "Biology" },
-  {
-    id: 6,
-    name: "Sakib",
-    age: 23,
-    email: "sakib@gmail.com",
-    subject: "Physics",
-  },
-  {
-    id: 7,
-    name: "Tania",
-    age: 21,
-    email: "tania@gmail.com",
-    subject: "Chemistry",
-  },
-  { id: 8, name: "Jahid", age: 20, email: "jahid@gmail.com", subject: "Math" },
-  {
-    id: 9,
-    name: "Rashed",
-    age: 22,
-    email: "rashed@gmail.com",
-    subject: "Geography",
-  },
-  {
-    id: 10,
-    name: "Shila",
-    age: 19,
-    email: "shila@gmail.com",
-    subject: "English",
-  },
-];
+import { useEffect } from "react";
 
 const Student = () => {
-  const [students] = useState(sampleStudents);
+  const [students, setStudents] = useState([]);
   const [search, setSearch] = useState("");
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
 
-  console.log(showAddStudentForm);
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/student");
+        const data = await res.json();
+        setStudents(data?.data);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   const filteredStudents = students.filter(
     (student) =>
@@ -98,7 +55,7 @@ const Student = () => {
 
   return (
     <>
-      <div className="p-4  md:px-8 md:py-1 bg-gray-100 min-h-screen">
+      <div className="p-4 md:px-8 md:py-1 bg-gray-100 min-h-screen">
         {/* Parent container */}
         <div className="bg-white rounded-lg shadow-md p-6">
           {/* Header */}
