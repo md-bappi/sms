@@ -61,7 +61,7 @@ const sampleStudents = [
 const Student = () => {
   const [students] = useState(sampleStudents);
   const [search, setSearch] = useState("");
-  const [showAddStudentForm, setShowAddStudentForm] = useState(true);
+  const [showAddStudentForm, setShowAddStudentForm] = useState(false);
 
   console.log(showAddStudentForm);
 
@@ -98,7 +98,7 @@ const Student = () => {
 
   return (
     <>
-      <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
+      <div className="p-4  md:px-8 md:py-1 bg-gray-100 min-h-screen">
         {/* Parent container */}
         <div className="bg-white rounded-lg shadow-md p-6">
           {/* Header */}
