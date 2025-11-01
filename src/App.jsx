@@ -6,13 +6,18 @@ import Student from "./pages/Student";
 
 const App = () => {
   return (
-    <div>
+    <div className="bg-gray-100 min-h-screen">
+      {/* Header */}
       <Header />
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/class" element={<Class />} />
-        <Route path="/student" element={<Student />} />
-      </Routes>
+
+      {/* Main Content */}
+      <main className="p-4 md:p-8">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/class" element={<Class />} />
+          <Route path="/student" element={<Student />} />
+        </Routes>
+      </main>
     </div>
   );
 };
